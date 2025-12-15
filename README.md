@@ -11,9 +11,9 @@ Aplikacja jest dostępna pod adresem:
 
 Projekt wykorzystuje następujący stos technologiczny:
 
-* **Framework:** Next.js 16 (App Router)
-* **Język:** JavaScript / React 19
-* **Stylizacja:** Tailwind CSS 4
+* **Framework:** Next.js  (App Router)
+* **Język:** JavaScript / React 
+* **Stylizacja:** Tailwind CSS 
 * **Backend & Baza Danych:** Firebase (Authentication, Firestore)
 * **Hosting:** Firebase Hosting
 
