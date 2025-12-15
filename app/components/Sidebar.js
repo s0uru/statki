@@ -1,9 +1,26 @@
 'use client';
 import Link from "next/link";
 import { useAuth } from "@/app/lib/AuthContext";
+import { usePathname } from "next/navigation"; // 1. Importujemy usePathname
 
 export default function Sidebar() {
   const { user } = useAuth();
+  const pathname = usePathname(); // 2. Pobieramy aktualną ścieżkę
+
+  // 3. Funkcja pomocnicza do stylów
+  const getLinkClass = (path) => {
+    // Sprawdzamy czy aktualna ścieżka to dokładnie ten link
+    const isActive = pathname === path;
+
+    // Baza stylów (wspólna dla wszystkich)
+    const baseClass = "flex items-center gap-3 rounded-lg px-4 py-3 text-sm font-medium transition";
+
+    // Style aktywne vs nieaktywne
+    const activeClass = "bg-indigo-50 text-indigo-700 shadow-sm"; // Podświetlony
+    const inactiveClass = "text-gray-600 hover:bg-gray-50 hover:text-gray-900"; // Zwykły
+
+    return `${baseClass} ${isActive ? activeClass : inactiveClass}`;
+  };
 
   return (
     <aside className="hidden w-72 flex-col border-r border-gray-200 bg-white shadow-sm sm:flex">
@@ -19,7 +36,7 @@ export default function Sidebar() {
             <li>
               <Link
                 href="/"
-                className="flex items-center gap-3 rounded-lg px-4 py-3 text-sm font-medium text-gray-600 transition hover:bg-indigo-50 hover:text-indigo-700"
+                className={getLinkClass('/')}
               >
                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" className="h-5 w-5">
                   <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 12l8.954-8.955c.44-.439 1.152-.439 1.591 0L21.75 12M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125H9.75v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21h4.125c.621 0 1.125-.504 1.125-1.125V9.75M8.25 21h8.25" />
@@ -28,7 +45,6 @@ export default function Sidebar() {
               </Link>
             </li>
             
-            {/* TĘ SEKCJĘ POKAZUJEMY TYLKO ZALOGOWANYM */}
             {user && (
               <>
                 <li>
@@ -38,8 +54,32 @@ export default function Sidebar() {
 
                 <li>
                   <Link
+                    href="/user/game"
+                    className={getLinkClass('/user/game')}
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" className="h-5 w-5">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M5.25 5.653c0-.856.917-1.398 1.667-.986l11.54 6.348a1.125 1.125 0 010 1.971l-11.54 6.347a1.125 1.125 0 01-1.667-.985V5.653z" />
+                    </svg>
+                    Gra
+                  </Link>
+                </li>
+
+                <li>
+                  <Link
+                    href="/user/leaderboard"
+                    className={getLinkClass('/user/leaderboard')}
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" className="h-5 w-5">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 18.75h-9m9 0a3 3 0 013 3h-15a3 3 0 013-3m9 0v-3.375c0-.621-.503-1.125-1.125-1.125h-.871M7.5 18.75v-3.375c0-.621.504-1.125 1.125-1.125h.872m5.007 0H9.497m5.007 0V5.625a2.25 2.25 0 00-2.25-2.25h-1.5a2.25 2.25 0 00-2.25 2.25v7.5" />
+                    </svg>
+                    Ranking
+                  </Link>
+                </li>
+
+                <li>
+                  <Link
                     href="/user/profile"
-                    className="flex items-center gap-3 rounded-lg px-4 py-3 text-sm font-medium text-gray-600 transition hover:bg-indigo-50 hover:text-indigo-700"
+                    className={getLinkClass('/user/profile')}
                   >
                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" className="h-5 w-5">
                       <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" />
@@ -50,8 +90,8 @@ export default function Sidebar() {
 
                 <li>
                   <Link
-                    href="/articles"
-                    className="flex items-center gap-3 rounded-lg px-4 py-3 text-sm font-medium text-gray-600 transition hover:bg-indigo-50 hover:text-indigo-700"
+                    href="/user/articles"
+                    className={getLinkClass('/user/articles')}
                   >
                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" className="h-5 w-5">
                       <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z" />

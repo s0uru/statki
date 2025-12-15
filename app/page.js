@@ -1,6 +1,10 @@
+'use client';
 import Link from "next/link";
+import { useAuth } from "@/app/lib/AuthContext";
 
 export default function Home() {
+  const { user, loading } = useAuth();
+
   return (
     <div className="space-y-12">
       
@@ -13,19 +17,32 @@ export default function Home() {
           <p className="mt-6 text-lg text-indigo-100 sm:text-xl">
             Klasyczna gra w statki w nowoczesnym wydaniu. Zaloguj się, ustaw swoją flotę i zmierz się z przeciwnikiem w technologii Next.js i Firebase.
           </p>
+          
           <div className="mt-8 flex justify-center gap-4">
-            <Link
-              href="/user/register"
-              className="rounded-full bg-white px-8 py-3 text-sm font-bold text-indigo-600 transition hover:bg-gray-100 focus:outline-none focus:ring focus:ring-yellow-400"
-            >
-              Zacznij Grać
-            </Link>
-            <Link
-              href="/user/signin"
-              className="rounded-full border border-white px-8 py-3 text-sm font-bold text-white transition hover:bg-white/10 focus:outline-none focus:ring focus:ring-white"
-            >
-              Zaloguj się
-            </Link>
+            {/* Logika: Jeśli zalogowany -> idź do gry, Jeśli nie -> rejestracja */}
+            {!loading && user ? (
+              <Link
+                href="/user/game"
+                className="rounded-full bg-white px-8 py-3 text-sm font-bold text-indigo-600 transition hover:bg-gray-100 focus:outline-none focus:ring focus:ring-yellow-400"
+              >
+                Wróć do Gry
+              </Link>
+            ) : (
+              <>
+                <Link
+                  href="/user/register"
+                  className="rounded-full bg-white px-8 py-3 text-sm font-bold text-indigo-600 transition hover:bg-gray-100 focus:outline-none focus:ring focus:ring-yellow-400"
+                >
+                  Zacznij Grać
+                </Link>
+                <Link
+                  href="/user/signin"
+                  className="rounded-full border border-white px-8 py-3 text-sm font-bold text-white transition hover:bg-white/10 focus:outline-none focus:ring focus:ring-white"
+                >
+                  Zaloguj się
+                </Link>
+              </>
+            )}
           </div>
         </div>
       </section>
