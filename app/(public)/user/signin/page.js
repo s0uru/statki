@@ -1,10 +1,11 @@
 'use client';
-import { useState, Suspense } from 'react';
+import { useState, Suspense } from 'react'; // Dodano Suspense
 import { signInWithEmailAndPassword, setPersistence, browserSessionPersistence, signOut } from "firebase/auth";
 import { auth } from '@/app/lib/firebase';
 import { useSearchParams, useRouter } from "next/navigation";
 import Link from 'next/link';
 
+// 1. Logika przeniesiona do komponentu wewnętrznego
 function SignInFormContent() {
   const [error, setError] = useState('');
   const router = useRouter();
@@ -24,7 +25,7 @@ function SignInFormContent() {
     })
     .then((userCredential) => {
         if (!userCredential.user.emailVerified) {
-            signOut(auth);
+            signOut(auth); 
             router.push(`/user/verify?email=${encodeURIComponent(email)}`);
             return;
         }
@@ -92,9 +93,10 @@ function SignInFormContent() {
   );
 }
 
+// 2. Główny komponent z Suspense
 export default function SignInForm() {
     return (
-        <Suspense fallback={<div className="text-center p-10">Ładowanie formularza...</div>}>
+        <Suspense fallback={<div className="text-center p-10">Ładowanie...</div>}>
             <SignInFormContent />
         </Suspense>
     );

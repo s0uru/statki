@@ -1,14 +1,14 @@
 import { initializeApp, getApps } from "firebase/app";
 import { getAuth } from "firebase/auth";
-import { getFirestore } from "firebase/firestore"; // 1. Dodaj import
+import { getFirestore } from "firebase/firestore";
 
 const firebaseConfig = {
-  apiKey: "AIzaSyBgATW6qOcrIFTQ6bfWCnRRKHGnThK7HPY",
-  authDomain: "statlk.firebaseapp.com",
-  projectId: "statlk",
-  storageBucket: "statlk.firebasestorage.app",
-  messagingSenderId: "409324501592",
-  appId: "1:409324501592:web:cadd3dd983c1d3ea24e82d"
+  apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
+  authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
+  projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
+  storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET,
+  messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
+  appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID
 };
 
 let app;
@@ -19,5 +19,5 @@ if (!getApps().length) {
 }
 
 export const auth = getAuth(app);
-export const db = getFirestore(app); // 2. Eksportuj bazę danych
+export const db = getFirestore(app);
 export default app;

@@ -1,10 +1,11 @@
 'use client';
-import { useEffect, Suspense } from 'react';
+import { useEffect, Suspense } from 'react'; // Dodano Suspense
 import { signOut } from 'firebase/auth';
 import { auth } from '@/app/lib/firebase';
 import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 
+// 1. Logika przeniesiona do komponentu wewnętrznego
 function VerifyEmailContent() {
     const searchParams = useSearchParams();
     const email = searchParams.get('email'); 
@@ -35,6 +36,7 @@ function VerifyEmailContent() {
     );
 }
 
+// 2. Główny komponent z Suspense
 export default function VerifyEmail() {
     return (
         <Suspense fallback={<div className="text-center p-10">Ładowanie...</div>}>
