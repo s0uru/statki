@@ -29,23 +29,22 @@ export default function GamePage() {
     }
   }, [user, loading, router]);
 
-  // Tworzenie pustej planszy
+  // Funkcja pomocnicza do tworzenia pustej planszy
   const createEmptyBoard = () => 
     Array(BOARD_SIZE * BOARD_SIZE).fill(null).map(() => ({ status: 'empty', hasShip: false, shipId: null }));
 
   // --- STANY GRY ---
   const [playerBoard, setPlayerBoard] = useState(createEmptyBoard());
-  const [enemyBoard, setEnemyBoard] = useState(createEmptyBoard());
-  const [gameState, setGameState] = useState('setup'); // setup, playing, won, lost
+  const [enemyBoard, setEnemyBoard] = useState(createEmptyBoard()); // Inicjalizacja pustą planszą
+  const [gameState, setGameState] = useState('setup'); // 'setup', 'playing', 'won', 'lost'
   const [turn, setTurn] = useState('player');
-  const [logs, setLogs] = useState(['Ustaw swoje statki, aby rozpocząć bitwę!']);
+  const [logs, setLogs] = useState(['Witaj! Ustaw swoje statki, aby rozpocząć.']);
   const [botHitsStack, setBotHitsStack] = useState([]);
   const [gameStats, setGameStats] = useState({ shots: 0, hits: 0 });
 
-  // --- STANY SETUPU ---
-  const [shipsToPlace, setShipsToPlace] = useState([...SHIPS_CONFIG]);
-  const [isHorizontal, setIsHorizontal] = useState(true);
-  const [hoveredCells, setHoveredCells] = useState([]);
+  // --- STANY SETUPU (NOWE) ---
+  const [shipsToPlace, setShipsToPlace] = useState([...SHIPS_CONFIG]); // Kolejka statków do położenia
+  const [isHorizontal, setIsHorizontal] = useState(true); // Orientacja statku
 
   const isValidIndex = (row, col) => row >= 0 && row < BOARD_SIZE && col >= 0 && col < BOARD_SIZE;
 
@@ -85,61 +84,6 @@ export default function GamePage() {
     }
   };
 
-  // --- LOGIKA SETUPU (RĘCZNE I LOSOWE) ---
-
-  const handleSetupCellClick = (index) => {
-    if (shipsToPlace.length === 0) return;
-
-    const currentShip = shipsToPlace[0];
-    const row = Math.floor(index / BOARD_SIZE);
-    const col = index % BOARD_SIZE;
-
-    if (canPlaceShip(playerBoard, row, col, currentShip.size, isHorizontal)) {
-      const newBoard = [...playerBoard];
-      const shipId = `${currentShip.name}-${SHIPS_CONFIG.length - shipsToPlace.length}`;
-      placeShip(newBoard, row, col, currentShip.size, isHorizontal, shipId);
-      setPlayerBoard(newBoard);
-      setShipsToPlace(prev => prev.slice(1));
-    } else {
-        addLog("Nie można tu postawić statku! Zachowaj odstęp.");
-    }
-  };
-
-  const handleSetupHover = (index) => {
-    if (shipsToPlace.length === 0) {
-        setHoveredCells([]);
-        return;
-    }
-    const currentShip = shipsToPlace[0];
-    const row = Math.floor(index / BOARD_SIZE);
-    const col = index % BOARD_SIZE;
-    const size = currentShip.size;
-    
-    let cells = [];
-    if (isHorizontal) {
-        if (col + size <= BOARD_SIZE) {
-            for(let i=0; i<size; i++) cells.push(row * BOARD_SIZE + col + i);
-        }
-    } else {
-        if (row + size <= BOARD_SIZE) {
-            for(let i=0; i<size; i++) cells.push((row + i) * BOARD_SIZE + col);
-        }
-    }
-    setHoveredCells(cells);
-  };
-
-  const resetSetup = () => {
-    setPlayerBoard(createEmptyBoard());
-    setShipsToPlace([...SHIPS_CONFIG]);
-    setLogs(['Zresetowano planszę. Ustaw statki ponownie.']);
-  };
-
-  const randomizePlayerBoard = () => {
-    setPlayerBoard(generateRandomBoard());
-    setShipsToPlace([]);
-    setLogs(['Statki rozlosowane. Gotowy do walki?']);
-  };
-
   const generateRandomBoard = () => {
     let newBoard = createEmptyBoard();
     for (let i = 0; i < SHIPS_CONFIG.length; i++) {
@@ -163,29 +107,55 @@ export default function GamePage() {
     return newBoard;
   };
 
-  // --- LOGIKA GRY ---
+  // --- OBSŁUGA SETUPU ---
+
+  const handleManualPlace = (index) => {
+    if (gameState !== 'setup' || shipsToPlace.length === 0) return;
+
+    const shipConfig = shipsToPlace[0];
+    const row = Math.floor(index / BOARD_SIZE);
+    const col = index % BOARD_SIZE;
+
+    if (canPlaceShip(playerBoard, row, col, shipConfig.size, isHorizontal)) {
+      const newBoard = [...playerBoard];
+      // Generujemy ID statku unikalne dla setupu
+      const shipId = `${shipConfig.name}-${SHIPS_CONFIG.length - shipsToPlace.length}`;
+      
+      placeShip(newBoard, row, col, shipConfig.size, isHorizontal, shipId);
+      setPlayerBoard(newBoard);
+      
+      // Usuń postawiony statek z kolejki
+      setShipsToPlace(prev => prev.slice(1));
+    } else {
+        addLog("Nie można tu postawić statku! Brak miejsca lub za blisko innego.");
+    }
+  };
+
+  const randomizePlayerSetup = () => {
+    setPlayerBoard(generateRandomBoard());
+    setShipsToPlace([]); // Wszystkie statki uznajemy za postawione
+  };
+
+  const resetSetup = () => {
+    setPlayerBoard(createEmptyBoard());
+    setShipsToPlace([...SHIPS_CONFIG]);
+    setLogs(['Zresetowano planszę. Ustaw statki ponownie.']);
+  };
+
+  // --- START GRY ---
 
   const startGame = () => {
     if (shipsToPlace.length > 0) {
         addLog("Musisz ustawić wszystkie statki przed rozpoczęciem!");
         return;
     }
+    // Generuj planszę wroga dopiero przy starcie
     setEnemyBoard(generateRandomBoard());
     setGameState('playing');
     setTurn('player');
     setBotHitsStack([]);
     setGameStats({ shots: 0, hits: 0 });
     setLogs(['Bitwa rozpoczęta! Twój ruch.']);
-  };
-
-  const countEnemyShipsLeft = () => {
-    const uniqueShips = new Set();
-    enemyBoard.forEach(cell => {
-        if (cell.hasShip && cell.status !== 'sunk') {
-            uniqueShips.add(cell.shipId);
-        }
-    });
-    return uniqueShips.size;
   };
 
   const addLog = (msg) => setLogs(prev => [msg, ...prev].slice(0, 5));
@@ -199,6 +169,8 @@ export default function GamePage() {
     }
     return false;
   };
+
+  // --- OBSŁUGA RUCHÓW ---
 
   const handlePlayerMove = (index) => {
     if (gameState !== 'playing' || turn !== 'player') return;
@@ -288,6 +260,17 @@ export default function GamePage() {
     return false;
   };
 
+  // --- LICZNIKI ---
+  const getEnemyShipsLeft = () => {
+    if (gameState !== 'playing') return SHIPS_CONFIG.length;
+    // Zlicz unikalne ID statków, które mają status 'sunk'
+    const sunkShipIds = new Set();
+    enemyBoard.forEach(cell => {
+        if (cell.status === 'sunk') sunkShipIds.add(cell.shipId);
+    });
+    return SHIPS_CONFIG.length - sunkShipIds.size;
+  };
+
   const saveGameResult = async (isWin) => {
     if (!user) return;
     try {
@@ -312,36 +295,32 @@ export default function GamePage() {
     let bg = "bg-blue-50"; 
     let content = null;
     let cursor = "cursor-default";
-
-    // Style dla setupu
+    
+    // Logika stylów w zależności od stanu gry
     if (gameState === 'setup' && !isEnemy) {
-        cursor = "cursor-pointer";
-        if (hoveredCells.includes(index)) bg = "bg-green-200";
-        if (cell.hasShip) bg = "bg-gray-500";
-    }
-
-    // Style dla gry
-    if (gameState !== 'setup') {
+        cursor = "cursor-pointer hover:bg-blue-100";
+        if (cell.hasShip) bg = "bg-gray-500"; // Podgląd statku w setupie
+    } else {
         cursor = isEnemy ? "cursor-pointer hover:bg-blue-200" : "cursor-default";
         if (!isEnemy && cell.hasShip && cell.status === 'empty') bg = "bg-gray-400";
     }
 
-    // Statusy trafień/pudeł
     if (cell.status === 'miss') { bg = "bg-blue-200"; content = <span className="text-blue-500 font-bold">•</span>; }
     if (cell.status === 'hit') { bg = "bg-orange-400"; content = <span className="text-white font-bold">X</span>; }
     if (cell.status === 'sunk') { bg = "bg-red-700 border-red-800"; content = <span className="text-black font-extrabold">☠</span>; }
     
-    const clickHandler = () => {
-        if (gameState === 'setup' && !isEnemy) handleSetupCellClick(index);
-        if (gameState === 'playing' && isEnemy) handlePlayerMove(index);
+    // Handler kliknięcia
+    const handleClick = () => {
+        if (isEnemy) {
+            handlePlayerMove(index);
+        } else {
+            if (gameState === 'setup') handleManualPlace(index);
+        }
     };
 
     return (
-      <div key={index} 
-        onClick={clickHandler}
-        onMouseEnter={() => !isEnemy && gameState === 'setup' && handleSetupHover(index)}
-        onMouseLeave={() => !isEnemy && gameState === 'setup' && setHoveredCells([])}
-        className={`w-full aspect-square border border-blue-200 flex items-center justify-center text-sm transition-colors duration-200 ${bg} ${cursor}`}>
+      <div key={index} onClick={handleClick}
+        className={`w-full aspect-square border border-blue-200 flex items-center justify-center text-sm transition-colors duration-300 ${bg} ${cursor}`}>
         {content}
       </div>
     );
@@ -355,51 +334,53 @@ export default function GamePage() {
         Strefa Bojowa
       </h1>
       
-      {/* --- PANEL GRY (ZARÓWNO SETUP JAK I PLAYING) --- */}
+      {/* Kontener gry */}
         <div className="flex flex-col lg:flex-row gap-6 justify-center items-start">
           
-          {/* --- GRACZ / SETUP --- */}
+          {/* --- GRACZ --- */}
           <div className="flex-1 w-full max-w-md">
-            <div className="flex justify-between items-center mb-3">
-                <h2 className="font-bold text-gray-700 text-lg tracking-wide">TY</h2>
-                {gameState === 'setup' && (
-                     <span className="text-sm font-bold text-indigo-600">
-                        {shipsToPlace.length > 0 ? "Ustawianie..." : "Gotowe!"}
-                     </span>
-                )}
-            </div>
+            <h2 className="text-center font-bold mb-3 text-gray-700 text-lg tracking-wide">TY</h2>
             
-            <div className={`grid grid-cols-10 gap-px border-4 border-gray-300 bg-gray-300 shadow-2xl rounded-lg overflow-hidden ${turn === 'enemy' && gameState === 'playing' ? 'opacity-80 grayscale-[0.3]' : ''}`}>
+            <div className={`grid grid-cols-10 gap-px border-4 border-gray-300 bg-gray-300 shadow-2xl rounded-lg overflow-hidden ${turn === 'enemy' ? 'opacity-80 grayscale-[0.3]' : ''}`}>
               {playerBoard.map((c, i) => renderCell(c, i, false))}
             </div>
 
-            {/* Kontrolki setupu pod planszą gracza */}
+            {/* PANEL SETUPU (Widoczny tylko w fazie setup) */}
             {gameState === 'setup' && (
-                <div className="mt-4 p-4 bg-white rounded-xl shadow-md border border-indigo-100">
+                <div className="mt-4 bg-white p-4 rounded-lg shadow border border-indigo-100">
                     <div className="flex justify-between items-center mb-4">
-                        <button onClick={() => setIsHorizontal(!isHorizontal)} className="flex items-center gap-2 text-sm font-bold text-gray-600 hover:text-indigo-600">
-                            <span className="text-xl">↻</span> {isHorizontal ? "Poziomo" : "Pionowo"}
+                        <button 
+                            onClick={() => setIsHorizontal(!isHorizontal)}
+                            className="bg-indigo-100 text-indigo-800 px-3 py-1 rounded text-sm font-bold hover:bg-indigo-200 transition">
+                            Obróć: {isHorizontal ? "Poziomo" : "Pionowo"}
                         </button>
                         <div className="space-x-2">
-                             <button onClick={randomizePlayerBoard} className="text-xs bg-gray-200 hover:bg-gray-300 px-3 py-1 rounded">Losuj</button>
-                             <button onClick={resetSetup} className="text-xs bg-red-100 text-red-600 hover:bg-red-200 px-3 py-1 rounded">Reset</button>
+                             <button onClick={randomizePlayerSetup} className="bg-gray-200 text-gray-700 px-3 py-1 rounded text-sm font-bold hover:bg-gray-300 transition">
+                                Losuj
+                             </button>
+                             <button onClick={resetSetup} className="bg-red-100 text-red-700 px-3 py-1 rounded text-sm font-bold hover:bg-red-200 transition">
+                                Reset
+                             </button>
                         </div>
                     </div>
                     
-                    {shipsToPlace.length > 0 ? (
-                        <div>
-                            <p className="text-xs text-gray-400 uppercase font-bold mb-2">Do rozmieszczenia:</p>
+                    {/* LICZNIK STATKÓW DO ROZMIESZCZENIA */}
+                    <div>
+                        <p className="text-xs font-bold text-gray-500 uppercase mb-2">Statki do rozmieszczenia:</p>
+                        {shipsToPlace.length > 0 ? (
                             <div className="flex flex-wrap gap-2">
                                 {shipsToPlace.map((ship, idx) => (
-                                    <div key={idx} className={`h-6 bg-gray-600 rounded ${idx === 0 ? 'bg-indigo-600 ring-2 ring-indigo-300' : 'opacity-50'}`} style={{width: `${ship.size * 12}px`}}></div>
+                                    <div key={idx} 
+                                         className={`h-4 bg-gray-400 rounded-sm ${idx === 0 ? 'bg-indigo-500 ring-2 ring-indigo-300' : 'opacity-60'}`} 
+                                         style={{width: `${ship.size * 10}px`}} 
+                                         title={ship.name}>
+                                    </div>
                                 ))}
                             </div>
-                        </div>
-                    ) : (
-                        <div className="text-center text-green-600 font-bold py-2">
-                            Wszystkie statki ustawione!
-                        </div>
-                    )}
+                        ) : (
+                            <p className="text-green-600 font-bold text-sm">Wszystkie statki ustawione! Możesz walczyć.</p>
+                        )}
+                    </div>
                 </div>
             )}
           </div>
@@ -416,15 +397,22 @@ export default function GamePage() {
                     </span>
                 </div>
                 
-                {gameState === 'playing' && (
-                    <div className="flex flex-col items-end">
-                        <span className="text-gray-400 text-[10px] uppercase font-bold tracking-widest">Do zatopienia</span>
-                        <span className="text-red-400 font-mono text-lg font-bold">
-                            {countEnemyShipsLeft()} <span className="text-xs text-gray-500">/ {SHIPS_CONFIG.length}</span>
-                        </span>
-                    </div>
-                )}
+                {/* LICZNIK CELNOŚCI */}
+                <div className="flex flex-col items-end">
+                    <span className="text-gray-400 text-[10px] uppercase font-bold tracking-widest">Celność</span>
+                    <span className="text-yellow-400 font-mono text-lg font-bold">
+                        {gameStats.shots > 0 ? Math.round((gameStats.hits / gameStats.shots) * 100) : 0}%
+                    </span>
+                </div>
             </div>
+            
+            {/* LICZNIK WROGICH STATKÓW (Tylko w trakcie gry) */}
+            {gameState === 'playing' && (
+                <div className="mb-3 bg-gray-700 p-2 rounded text-center border border-gray-600">
+                    <p className="text-gray-400 text-[10px] uppercase font-bold">Wrogie statki</p>
+                    <p className="text-red-400 font-mono text-xl font-bold">{getEnemyShipsLeft()} <span className="text-sm text-gray-500">/ {SHIPS_CONFIG.length}</span></p>
+                </div>
+            )}
 
             {/* Logi gry */}
             <div className="flex-1 overflow-y-auto space-y-2 font-mono text-xs text-gray-300 pr-2 custom-scrollbar h-64">
@@ -435,15 +423,15 @@ export default function GamePage() {
                 ))}
             </div>
 
-            {/* Przyciski Akcji */}
+            {/* Przyciski Główne */}
             <div className="mt-4">
                 {gameState === 'setup' && (
                     <button 
                         onClick={startGame} 
                         disabled={shipsToPlace.length > 0}
-                        className={`w-full py-3 rounded-lg font-bold shadow-lg uppercase tracking-wide text-sm transition-all
-                            ${shipsToPlace.length === 0 ? 'bg-green-600 text-white hover:bg-green-700 hover:scale-105' : 'bg-gray-700 text-gray-500 cursor-not-allowed'}`}>
-                        {shipsToPlace.length === 0 ? 'ROZPOCZNIJ BITWĘ' : 'Ustaw statki'}
+                        className={`w-full py-3 rounded-lg font-bold shadow-lg uppercase tracking-wide text-sm transition 
+                        ${shipsToPlace.length === 0 ? 'bg-indigo-600 hover:bg-indigo-500 text-white cursor-pointer' : 'bg-gray-600 text-gray-400 cursor-not-allowed'}`}>
+                        {shipsToPlace.length > 0 ? `Ustaw statki (${shipsToPlace.length})` : 'ROZPOCZNIJ BITWĘ'}
                     </button>
                 )}
 
@@ -459,9 +447,10 @@ export default function GamePage() {
           <div className="flex-1 w-full max-w-md">
             <h2 className="text-center font-bold mb-3 text-red-600 text-lg tracking-wide">WRÓG</h2>
             {gameState === 'setup' ? (
-                 <div className="aspect-square bg-gray-200 border-4 border-dashed border-gray-400 rounded-lg flex items-center justify-center">
-                    <p className="text-gray-500 font-bold uppercase tracking-widest text-sm">Oczekiwanie...</p>
-                 </div>
+                <div className="aspect-square bg-gray-100 border-4 border-dashed border-gray-300 rounded-lg flex flex-col items-center justify-center text-gray-400">
+                    <span className="text-4xl mb-2">⚓</span>
+                    <p className="font-bold text-sm uppercase">Oczekiwanie na bitwę</p>
+                </div>
             ) : (
                 <div className={`grid grid-cols-10 gap-px border-4 border-red-300 bg-red-300 shadow-2xl rounded-lg overflow-hidden relative transition-all duration-300 ${turn !== 'player' ? 'opacity-90 cursor-not-allowed' : 'hover:scale-[1.01]'}`}>
                 {enemyBoard.map((c, i) => renderCell(c, i, true))}
