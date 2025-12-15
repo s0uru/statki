@@ -1,30 +1,36 @@
 'use client';
 import { useState } from 'react';
-import { signInWithEmailAndPassword, setPersistence, browserSessionPersistence } from "firebase/auth";
+import { signInWithEmailAndPassword, setPersistence, browserSessionPersistence, signOut } from "firebase/auth";
 import { auth } from '@/app/lib/firebase';
 import { useSearchParams, useRouter } from "next/navigation";
 import Link from 'next/link';
 
 export default function SignInForm() {
-  const [error, setError] = useState(''); // Stan na błędy (Zadanie 8)
+  const [error, setError] = useState('');
   const router = useRouter();
   const params = useSearchParams();
-  const returnUrl = params.get("returnUrl"); // Pobranie returnUrl (Zadanie 7)
+  const returnUrl = params.get("returnUrl");
 
   const onSubmit = (e) => {
     e.preventDefault();
-    setError(''); // Reset błędów
+    setError('');
     
-    const email = e.target.email.value; // Poprawione name="email"
+    const email = e.target.email.value;
     const password = e.target.password.value;
 
-    // Zadanie 7: Logika logowania z persystencją
     setPersistence(auth, browserSessionPersistence)
     .then(() => {
         return signInWithEmailAndPassword(auth, email, password);
     })
     .then((userCredential) => {
-        // Zadanie 8: Jeśli jest returnUrl to tam idziemy, jeśli nie to na główną
+        // Zadanie 6: Sprawdzenie weryfikacji emaila
+        if (!userCredential.user.emailVerified) {
+            signOut(auth); // Wyloguj natychmiast
+            router.push(`/user/verify?email=${encodeURIComponent(email)}`);
+            return;
+        }
+
+        // Jeśli zweryfikowany, kontynuuj logowanie
         if (returnUrl) {
             router.push(returnUrl);
         } else {
@@ -32,9 +38,8 @@ export default function SignInForm() {
         }
     })
     .catch((error) => {
-        // Zadanie 8: Wyświetlanie błędu w UI zamiast w konsoli
         const errorCode = error.code;
-        if (errorCode === 'auth/invalid-credential') {
+        if (errorCode === 'auth/invalid-credential' || errorCode === 'auth/user-not-found' || errorCode === 'auth/wrong-password') {
              setError("Błędny email lub hasło.");
         } else {
              setError("Wystąpił błąd logowania: " + error.message);
@@ -43,6 +48,7 @@ export default function SignInForm() {
   };
 
   return (
+    // ... (reszta kodu formularza bez zmian, zwróć uwagę na wyświetlanie {error})
     <div className="flex min-h-full flex-col justify-center px-6 py-12 lg:px-8">
       <div className="sm:mx-auto sm:w-full sm:max-w-sm">
         <h2 className="mt-10 text-center text-2xl font-bold leading-9 tracking-tight text-gray-900">
@@ -51,8 +57,6 @@ export default function SignInForm() {
       </div>
 
       <div className="mt-10 sm:mx-auto sm:w-full sm:max-w-sm">
-        
-        {/* Zadanie 8: Wyświetlanie alertu błędu */}
         {error && (
             <div className="mb-4 rounded-lg bg-red-100 p-4 text-sm text-red-700" role="alert">
                 {error}
