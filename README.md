@@ -32,7 +32,7 @@ Aby uruchomić projekt na własnym komputerze:
 
 1.  **Sklonuj repozytorium:**
     ```bash
-    git clone [https://github.com/twoj-nick/statki.git](https://github.com/twoj-nick/statki.git)
+    git clone https://github.com/s0uru/statki.git
     cd statki
     ```
 
@@ -51,6 +51,6 @@ Aby uruchomić projekt na własnym komputerze:
 
 Aplikacja będzie dostępna pod adresem `http://localhost:3000`.
 
-## 👤 Autor
+## 👤 Autor : Jakub Pietrusiak
 
 Projekt wykonany w ramach laboratorium programowania aplikacji internetowych.
