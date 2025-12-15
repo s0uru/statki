@@ -1,11 +1,11 @@
 'use client';
-import { useState } from 'react';
+import { useState, Suspense } from 'react';
 import { signInWithEmailAndPassword, setPersistence, browserSessionPersistence, signOut } from "firebase/auth";
 import { auth } from '@/app/lib/firebase';
 import { useSearchParams, useRouter } from "next/navigation";
 import Link from 'next/link';
 
-export default function SignInForm() {
+function SignInFormContent() {
   const [error, setError] = useState('');
   const router = useRouter();
   const params = useSearchParams();
@@ -23,14 +23,12 @@ export default function SignInForm() {
         return signInWithEmailAndPassword(auth, email, password);
     })
     .then((userCredential) => {
-        // Zadanie 6: Sprawdzenie weryfikacji emaila
         if (!userCredential.user.emailVerified) {
-            signOut(auth); // Wyloguj natychmiast
+            signOut(auth);
             router.push(`/user/verify?email=${encodeURIComponent(email)}`);
             return;
         }
 
-        // Jeśli zweryfikowany, kontynuuj logowanie
         if (returnUrl) {
             router.push(returnUrl);
         } else {
@@ -48,7 +46,6 @@ export default function SignInForm() {
   };
 
   return (
-    // ... (reszta kodu formularza bez zmian, zwróć uwagę na wyświetlanie {error})
     <div className="flex min-h-full flex-col justify-center px-6 py-12 lg:px-8">
       <div className="sm:mx-auto sm:w-full sm:max-w-sm">
         <h2 className="mt-10 text-center text-2xl font-bold leading-9 tracking-tight text-gray-900">
@@ -93,4 +90,12 @@ export default function SignInForm() {
       </div>
     </div>
   );
+}
+
+export default function SignInForm() {
+    return (
+        <Suspense fallback={<div className="text-center p-10">Ładowanie formularza...</div>}>
+            <SignInFormContent />
+        </Suspense>
+    );
 }

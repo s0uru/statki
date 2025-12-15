@@ -1,17 +1,15 @@
 'use client';
-import { useEffect, useState } from 'react';
+import { useEffect, Suspense } from 'react';
 import { signOut } from 'firebase/auth';
 import { auth } from '@/app/lib/firebase';
 import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 
-export default function VerifyEmail() {
+function VerifyEmailContent() {
     const searchParams = useSearchParams();
-    // Pobieramy email z URL, ponieważ po wylogowaniu auth.currentUser będzie null
     const email = searchParams.get('email'); 
 
     useEffect(() => {
-        // Upewniamy się, że użytkownik jest wylogowany na tej stronie
         signOut(auth).catch((err) => console.error("Błąd wylogowania:", err));
     }, []);
 
@@ -34,5 +32,13 @@ export default function VerifyEmail() {
                 Powrót do logowania
             </Link>
         </div>
+    );
+}
+
+export default function VerifyEmail() {
+    return (
+        <Suspense fallback={<div className="text-center p-10">Ładowanie...</div>}>
+            <VerifyEmailContent />
+        </Suspense>
     );
 }
