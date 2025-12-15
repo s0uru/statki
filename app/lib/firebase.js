@@ -1,7 +1,7 @@
 import { initializeApp, getApps } from "firebase/app";
 import { getAuth } from "firebase/auth";
+import { getFirestore } from "firebase/firestore"; // 1. Dodaj import
 
-// Twoja NOWA konfiguracja z projektu "statlk":
 const firebaseConfig = {
   apiKey: "AIzaSyBgATW6qOcrIFTQ6bfWCnRRKHGnThK7HPY",
   authDomain: "statlk.firebaseapp.com",
@@ -11,7 +11,6 @@ const firebaseConfig = {
   appId: "1:409324501592:web:cadd3dd983c1d3ea24e82d"
 };
 
-// Singleton - zapobiega podwójnej inicjalizacji przy przeładowaniu
 let app;
 if (!getApps().length) {
     app = initializeApp(firebaseConfig);
@@ -19,6 +18,6 @@ if (!getApps().length) {
     app = getApps()[0]; 
 }
 
-// Eksportujemy auth, żeby reszta aplikacji mogła go używać
 export const auth = getAuth(app);
+export const db = getFirestore(app); // 2. Eksportuj bazę danych
 export default app;

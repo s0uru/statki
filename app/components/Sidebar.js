@@ -28,38 +28,55 @@ export default function Sidebar() {
               </Link>
             </li>
             
-            <li>
-              <div className="my-4 h-px bg-gray-100"></div> {/* Separator */}
-              <span className="px-4 text-xs font-semibold uppercase text-gray-400">Użytkownik</span>
-            </li>
+            {/* TĘ SEKCJĘ POKAZUJEMY TYLKO ZALOGOWANYM */}
+            {user && (
+              <>
+                <li>
+                  <div className="my-4 h-px bg-gray-100"></div>
+                  <span className="px-4 text-xs font-semibold uppercase text-gray-400">Użytkownik</span>
+                </li>
 
-            <li>
-              <Link
-                href="/user/profile"
-                className="flex items-center gap-3 rounded-lg px-4 py-3 text-sm font-medium text-gray-600 transition hover:bg-indigo-50 hover:text-indigo-700"
-              >
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" className="h-5 w-5">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" />
-                </svg>
-                Twój Profil
-              </Link>
-            </li>
+                <li>
+                  <Link
+                    href="/user/profile"
+                    className="flex items-center gap-3 rounded-lg px-4 py-3 text-sm font-medium text-gray-600 transition hover:bg-indigo-50 hover:text-indigo-700"
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" className="h-5 w-5">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" />
+                    </svg>
+                    Twój Profil
+                  </Link>
+                </li>
 
-            <li>
-              <Link
-                href="/user/signout"
-                className="flex items-center gap-3 rounded-lg px-4 py-3 text-sm font-medium text-gray-600 transition hover:bg-red-50 hover:text-red-600"
-              >
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" className="h-5 w-5">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6a2.25 2.25 0 00-2.25 2.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15m3 0l3-3m0 0l-3-3m3 3H9" />
-                </svg>
-                Wyloguj się
-              </Link>
-            </li>
+                <li>
+                  <Link
+                    href="/articles"
+                    className="flex items-center gap-3 rounded-lg px-4 py-3 text-sm font-medium text-gray-600 transition hover:bg-indigo-50 hover:text-indigo-700"
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" className="h-5 w-5">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z" />
+                    </svg>
+                    Artykuły
+                  </Link>
+                </li>
+
+                <li>
+                  <Link
+                    href="/user/signout"
+                    className="flex items-center gap-3 rounded-lg px-4 py-3 text-sm font-medium text-gray-600 transition hover:bg-red-50 hover:text-red-600"
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" className="h-5 w-5">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6a2.25 2.25 0 00-2.25 2.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15m3 0l3-3m0 0l-3-3m3 3H9" />
+                    </svg>
+                    Wyloguj się
+                  </Link>
+                </li>
+              </>
+            )}
         </ul>
       </nav>
       
-      {/* Stopka sidebara z danymi użytkownika (Zadanie 5) */}
+      {/* Stopka */}
       <div className="border-t border-gray-100 p-4">
         {user ? (
             <div className="flex items-center gap-3 rounded-lg bg-gray-50 p-3">
@@ -68,11 +85,10 @@ export default function Sidebar() {
                         src={user.photoURL} 
                         alt="Avatar" 
                         className="h-10 w-10 rounded-full object-cover border border-gray-200"
-                        onError={(e) => e.target.style.display = 'none'} // Zabezpieczenie przed złym linkiem
+                        onError={(e) => e.target.style.display = 'none'}
                     />
                 ) : (
                     <div className="h-10 w-10 flex-shrink-0 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-600 font-bold border border-indigo-200">
-                        {/* Pierwsza litera emaila lub nazwy */}
                         {(user.displayName || user.email || '?').charAt(0).toUpperCase()}
                     </div>
                 )}
